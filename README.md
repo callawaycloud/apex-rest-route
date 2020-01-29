@@ -140,7 +140,7 @@ public class CompanyRoute extends RestRoute {
 
 1. Each `RestRoute` route is initialized with a `param` property (if the URI contains one) and `relativePaths` containing the remaining URL paths from the request.
 
-1. The `doGet` & `doPost` corresponding to our HTTP methods for this route.  Any HTTP method not implement will throw an exception.
+1. The `doGet` & `doPost` corresponding to our HTTP methods for this route.  Any HTTP method not implement will throw an exception.  You can also override `doPut`, `doDelete`.  Salesforce does not support `patch` at this time :shrug:
 
 1. `next()` will be called whenever the URI does not terminate with this Route. This method is responsible for determining the next route and setting the `relativePaths` to the correct point. 
 
@@ -173,7 +173,7 @@ public class CompanyLocationRoute extends RestRoute {
 
 ### Returning non-json
 
-By default anything your return from the `doX` methods will be serialized to JSON.  However, if you need to respond with another format, you can set `this.response` directly and return `null`:
+By default anything your return from the `doGet()|doPost()|...` methods will be serialized to JSON.  However, if you need to respond with another format, you can set `this.response` directly and return `null`:
 
 ``` java
 protected override Object doGet() {
