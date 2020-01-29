@@ -2,7 +2,7 @@
 
 A simple library that allows the creation of RESTful API's. 
 
-## ✨Features:
+## ✨ Features:
 
 - supports deeply nested RESTful resource URI
 - allows you to focus on the implemenation
@@ -11,7 +11,7 @@ A simple library that allows the creation of RESTful API's.
 - hierarchical composition allows you to automaticly execute code common to routes
 - lightweight: current implementation is ~ 200LN
 
-## 📦Install
+## 📦 Install
 coming soon
 
 ## 🔨 Usage
