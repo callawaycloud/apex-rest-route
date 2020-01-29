@@ -1,11 +1,20 @@
-# apex-rest-route
+# apex/:rest/route
 
-A simple library that allows the creation of RESTful API's.  Handles routing and allows you to focus on the implementation.
+A simple library that allows the creation of RESTful API's. 
 
-## Install
+## ✨Features:
+
+- supports deeply nested RESTful resource URI
+- allows you to focus on the implemenation
+- automatic responses generation with flexibility to override
+- opionionated error responses to align with Salesforce
+- hierarchical composition allows you to automaticly execute code common to routes
+- lightweight: current implementation is ~ 200LN
+
+## 📦Install
 coming soon
 
-## Usage
+## 🔨 Usage
 
 ### Defining Routes
 
