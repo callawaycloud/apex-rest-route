@@ -7,9 +7,11 @@ coming soon
 
 ## Usage
 
+### Defining Routes
+
 Imagine you wanted to create an API to expose the follow resources `Companies` & `CompanyLocations` & `CompanyEmployees`
 
-If you follow a RESTful design, you might have the following Resource URI definitions:
+[Following RESTful Design](https://hackernoon.com/restful-api-designing-guidelines-the-best-practices-60e1d954e7c9), we might have the following Resource URI definitions:
 
 - `api/v1/companies`
 - `api/v1/companies/:companyId`
@@ -20,7 +22,9 @@ If you follow a RESTful design, you might have the following Resource URI defini
 - `api/v1/companies/:companyId/employees`
 - `api/v1/companies/:companyId/employees/:employeeId`
 
-To implement this, first we will define our "Routes". If you think of the URI as a tree, each Route should correspond to a branch:
+To implement this, first we will define our "Routes". 
+
+If you think of the URI as a tree, each Route should correspond to a branch:
 
 ```
       api/v1
@@ -88,7 +92,7 @@ global class CompanyAPI{
 }
 ```
 
-Things to note:
+#### Things to note:
 
 1. This `@RestResource` is pretty much just a hook to call into our `CompanyRoute`. 
 1. `urlMapping='/v1/companies/*'` defines our base route.  This should always be the baseUrl for the top level router (`CompanyRoute`), excluding the param.
@@ -132,13 +136,15 @@ public class CompanyRoute extends RestRoute {
 }
 ```
 
-Things to note:
+#### Things to note:
 
-1. Each `RestRoute` route is initialized with a `param` property (if the URI contains one) and `relativePaths` containing the remaining URL paths.
+1. Each `RestRoute` route is initialized with a `param` property (if the URI contains one) and `relativePaths` containing the remaining URL paths from the request.
 
 1. The `doGet` & `doPost` corresponding to our HTTP methods for this route.  Any HTTP method not implement will throw an exception.
 
-1. `next()'` will be called whenever the URI does not terminate with this Route. This method is responsible for determining the next route and setting the `relativePaths` to the correct point.
+1. `next()` will be called whenever the URI does not terminate with this Route. This method is responsible for determining the next route and setting the `relativePaths` to the correct point. 
+
+1. We pass `this.param` into the next Routes so they have access to `:employeeId`.  This composition makes it easy to provide common functionality as lower level routes much pass through their parents.  For example, we could query the "Company" and pass that to the next routes instead of just `this.param`.
 
 ``` java
 public class CompanyLocationRoute extends RestRoute {
@@ -159,7 +165,7 @@ public class CompanyLocationRoute extends RestRoute {
 }
 ```
 
-Things to note:
+#### Things to note:
 
 1. We pass the `companyId` from the above route into the constructor
 1. This route does not implement `next()`.  Any requests that don't end terminate with this route will result in a 404
