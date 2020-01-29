@@ -169,3 +169,22 @@ public class CompanyLocationRoute extends RestRoute {
 
 1. We pass the `companyId` from the above route into the constructor
 1. This route does not implement `next()`.  Any requests that don't end terminate with this route will result in a 404
+
+
+### Returning non-json
+
+By default anything your return from the `doX` methods will be serialized to JSON.  However, if you need to respond with another format, you can set `this.response` directly and return `null`:
+
+``` java
+protected override Object doGet() {
+    response.responseBody = Blob.valueOf('Hello World!');
+    response.addHeader('Content-Type', 'text/plain');
+    return null;
+}
+```
+
+### Returning Errors
+
+You can return an Error at anytime by throwing an exception.  The `RestError.RestException` allows you to set `StatusCode` and `message` when throwing.  There are also build in Errors for common use cases (`RestRoute.RouteNotFoundException` & `RestRoute.RouteNotFoundException`).
+
+The response body will always contain `RestRouteError.Response`.  [following the best practices for handling REST errors](https://salesforce.stackexchange.com/questions/161429/rest-error-handling-design).
