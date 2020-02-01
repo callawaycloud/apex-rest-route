@@ -1,17 +1,19 @@
 # apex/:rest/route
 
-A simple library that allows the creation of RESTful API's. 
+A simple library that allows the creation of RESTful API's.
 
 ## ✨ Features:
 
-- supports deeply nested RESTful resource URI
-- allows you to focus on the implemenation
-- automatic responses generation with flexibility to override
-- opionionated error responses to align with Salesforce
-- hierarchical composition allows you to automaticly execute code common to routes
-- lightweight: current implementation is ~ 200LN
+-   supports deeply nested RESTful resource URI
+-   allows you to focus on the implementation
+-   automatic responses generation
+-   error responses to align with Salesforce responses
+-   flexibility to override most default functionality
+-   hierarchical composition encourages for code reuse and RESTful design
+-   lightweight: current implementation is ~ 200LN
 
 ## 📦 Install
+
 coming soon
 
 ## 🔨 Usage
@@ -22,16 +24,16 @@ Imagine you wanted to create an API to expose the follow resources `Companies` &
 
 [Following RESTful Design](https://hackernoon.com/restful-api-designing-guidelines-the-best-practices-60e1d954e7c9), we might have the following Resource URI definitions:
 
-- `api/v1/companies`
-- `api/v1/companies/:companyId`
+-   `api/v1/companies`
+-   `api/v1/companies/:companyId`
 
-- `api/v1/companies/:companyId/locations`
-- `api/v1/companies/:companyId/locations/:locationId`
+-   `api/v1/companies/:companyId/locations`
+-   `api/v1/companies/:companyId/locations/:locationId`
 
-- `api/v1/companies/:companyId/employees`
-- `api/v1/companies/:companyId/employees/:employeeId`
+-   `api/v1/companies/:companyId/employees`
+-   `api/v1/companies/:companyId/employees/:employeeId`
 
-To implement this, first we will define our "Routes". 
+To implement this, first we will define our "Routes".
 
 If you think of the URI as a tree, each Route should correspond to a branch:
 
@@ -45,7 +47,7 @@ locations  employees
 
 For this example, we will just define three routes: `CompanyRoute`, `CompanyLocationRoute` & `CompanyEmployeeRoute`.
 
-We could also define a top level route for the `v1` of the API, but for this example we'll just let that be handled by the standard `@RestResource` routing.
+We could also define a top level route for `api/:versionId`, but for this example we'll just let that be handled by the standard `@RestResource` routing.
 
 `CompanyRoute` will be responsible for providing a response to the following URI:
 
@@ -73,12 +75,12 @@ And `CompanyEmployeeRoute` will respond to:
 ```java
 @RestResource(urlMapping='/v1/companies/*')
 global class CompanyAPI{
-    
+
     private static void handleRequest(){
       CompanyRoute router = new CompanyRoute();
       router.execute();
     }
-    
+
     @HttpGet
     global static void handleGet() {
         handleRequest();
@@ -103,19 +105,17 @@ global class CompanyAPI{
 
 #### Things to note:
 
-1. This `@RestResource` is pretty much just a hook to call into our `CompanyRoute`. 
-1. `urlMapping='/v1/companies/*'` defines our base route.  This should always be the baseUrl for the top level router (`CompanyRoute`), excluding the param.
-1. We call the empty constructor for `CompanyRoute`, which initializes our route state.  This constructor should ONLY be called here.  For any nested routes, you will always PASS DOWN the `relativePaths`.
+1. This `@RestResource` is pretty much just a hook to call into our `CompanyRoute`.
+1. `urlMapping='/api/v1/companies/*'` defines our base route. This should always be the baseUrl for the top level router (`CompanyRoute`), excluding the param. IOW, the `urlMapping` must end with the name of the first route + `/*`.
 
 ```java
 public class CompanyRoute extends RestRoute {
- 
+
     protected override Object doGet() {
-        if (!String.isEmpty(this.param)) {
-           return getCompany(this.param); //implementation not show
-        } else {
-          return getCompanies();
+        if (!String.isEmpty(this.resourceId)) {
+           return getCompany(this.resourceId); //implementation not shown
         }
+        return getCompanies();
     }
 
     protected override Object doPost() {
@@ -126,50 +126,42 @@ public class CompanyRoute extends RestRoute {
         }
     }
 
-    protected override RestRoute next() {
-        String nextPath = popNextPath();
-
-        switch on nextPath {
-           when 'locations' {
-                //companies/:companyId/locations
-                return new CompanyLocationRoute(this.param, relativePaths);
-            }
-            when 'employees' {
-                //companies/:companyId/employees
-                return new CompanyEmployeeRoute(this.param, relativePaths);
-            }
-        }
-
-        return null; //responds with 404 standard error
+   //define downstream route
+   protected override Map<String, RestRoute> getNextRouteMap() {
+        return new Map<String, RestRoute>{
+            'locations' => new CompanyLocationRoute(this.resourceId),
+            'employees' => new CompanyEmployeeRoute(this.resourceId)
+        };
     }
 }
 ```
 
 #### Things to note:
 
-1. Each `RestRoute` route is initialized with a `param` property (if the URI contains one) and `relativePaths` containing the remaining URL paths from the request.
+1. Each `RestRoute` route is initialized with a `resourceId` property (if the URI contains one) and `relativePaths` containing the remaining URL paths from the request.
 
-1. The `doGet` & `doPost` corresponding to our HTTP methods for this route.  Any HTTP method not implement will throw an exception.  You can also override `doPut`, `doDelete`.  Salesforce does not support `patch` at this time :shrug:
+1. The `doGet` & `doPost` corresponding to our HTTP methods for this route. Any HTTP method not implement will throw an exception. You can also override `doPut`, `doDelete`. Salesforce does not support `patch` at this time :shrug:
 
-1. `next()` will be called whenever the URI does not terminate with this Route. This method is responsible for determining the next route and setting the `relativePaths` to the correct point. 
+1. `getNextRouteMap()` will be used to determine the next RestRoute to call when the URI does not terminate with this Route. The next URI part will be matched against the Map keys. If more advanced routing is needed you can instead override the `next()` method and take full control.
 
-1. We pass `this.param` into the next Routes so they have access to `:employeeId`.  This composition makes it easy to provide common functionality as lower level routes much pass through their parents.  For example, we could query the "Company" and pass that to the next routes instead of just `this.param`.
+1. We pass `this.resourceId` into the next Routes so they have access to `:employeeId`. This composition makes it easy to provide common functionality as lower level routes much pass through their parents. For example, we could query the "Company" and pass that to the next routes instead of just `this.resourceId`.
 
-``` java
+```java
 public class CompanyLocationRoute extends RestRoute {
     private String companyId;
 
-    public CustomerAccountProductsRoute(String customerId, string[] relativePaths) {
-        super(relativePaths);
+    public CompanyLocationRoute(String companyId) {
         this.companyId = companyId;
     }
 
     protected override Object doGet() {
-        if (!String.isEmpty(this.param)) {
-            return getLocation(this.param);
-        } else {
-           return getLocations(this.companyId);
+        //filter down by company
+        CompanyLocation[] companyLocations = getCompanyLocations(companyId);
+
+        if (!String.isEmpty(this.resourceId)) {
+            return getEntityById(this.resourceId, companyLocations);
         }
+        return companyLocations;
     }
 }
 ```
@@ -177,23 +169,126 @@ public class CompanyLocationRoute extends RestRoute {
 #### Things to note:
 
 1. We pass the `companyId` from the above route into the constructor
-1. This route does not implement `next()`.  Any requests that don't end terminate with this route will result in a 404
+1. This route does not implement `next()`. Any requests that don't end terminate with this route will result in a 404
 
+### Returning other Content-Types
 
-### Returning non-json
+By default anything your return from the `doGet()|doPost()|...` methods will be serialized to JSON. However, if you need to respond with another format, you can set `this.response` directly and return `null`:
 
-By default anything your return from the `doGet()|doPost()|...` methods will be serialized to JSON.  However, if you need to respond with another format, you can set `this.response` directly and return `null`:
-
-``` java
+```java
 protected override Object doGet() {
-    response.responseBody = Blob.valueOf('Hello World!');
-    response.addHeader('Content-Type', 'text/plain');
+    this.response.responseBody = Blob.valueOf('Hello World!');
+    this.response.addHeader('Content-Type', 'text/plain');
     return null;
 }
 ```
 
-### Returning Errors
+### Error Handling
 
-You can return an Error at anytime by throwing an exception.  The `RestError.RestException` allows you to set `StatusCode` and `message` when throwing.  There are also build in Errors for common use cases (`RestRoute.RouteNotFoundException` & `RestRoute.RouteNotFoundException`).
+You can return an Error at anytime by throwing an exception. The `RestError.RestException` allows you to set `StatusCode` and `message` when throwing. There are also build in Errors for common use cases (`RouteNotFoundException` & `RouteNotFoundException`).
 
-The response body will always contain `RestRouteError.Response`.  [following the best practices for handling REST errors](https://salesforce.stackexchange.com/questions/161429/rest-error-handling-design).
+The response body will always contain `List<RestRouteError.Response>` as this [follows the best practices for handling REST errors](https://salesforce.stackexchange.com/questions/161429/rest-error-handling-design).
+
+If needed you do change this by overriding `handleException(Exception err)`.
+
+### Expanding Results
+
+With our above example, if we wanted to pull all information about a company we would need to make 3 request:
+
+> GET /companies/c-1
+
+```json
+{
+    "id": "c-1",
+    "name": "Callaway Cloud"
+}
+```
+
+> GET /companies/123/employees
+
+```json
+[
+    {
+        "id": "e-1",
+        "name": "John Doe",
+        "role": "Developer"
+    },
+    {
+        "id": "e-2",
+        "name": "Billy Jean",
+        "role": "PM"
+    }
+]
+```
+
+> GET /companies/123/locations
+
+```json
+[
+    {
+        "id": "l-1",
+        "name": "Jackson, Wy"
+    }
+]
+```
+
+One interesting bonus of our design is the ability for this library to "expand" results by calling `expandResource(result)`:
+
+```java
+public override Object doGet() {
+    Company[] companies = getCompanies();
+    if (!String.isEmpty(this.resourceId)) {
+        Company c = (Company) getEntityById(this.resourceId, companies);
+        if (this.request.params.containsKey('expand')) {
+            return expandResource(c);
+        }
+        return c;
+    }
+    //... collection
+}
+```
+
+Doing so will run all downstream routes and return a single response with the next level of data!
+
+```json
+{
+    "id": "c-1",
+    "name": "Callaway Cloud",
+    "employees": [
+        {
+            "id": "e-1",
+            "name": "John Doe",
+            "role": "Developer"
+        },
+        {
+            "id": "e-2",
+            "name": "Billy Jean",
+            "role": "PM"
+        }
+    ],
+    "locations": [
+        {
+            "id": "l-1",
+            "name": "Jackson, Wy"
+        }
+    ]
+}
+```
+
+This works by just running each of the child routes and merging in their data (the property is assigned based on the route; **warning will overwrite any conflict**).
+
+It is even _possible_ (although a bit more complicated) to expand on collection request.
+
+```java
+//... doGet()
+if (this.request.params.containsKey('expand')) {
+    List<Map<String, Object>> expandedResponse = new List<Map<String, Object>>();
+    for (Company c : companies) {
+        this.resourceId = c.id;  // we must setup state for
+        expandedResponse.add(expandRecord(c));
+    }
+    return expandedResponse;
+}
+```
+
+While very cool, expanding collections is generally not advised due it's potential to be highly inefficient. If your downstream routes also support collection expansion, it would recursively continue through the entire tree!
