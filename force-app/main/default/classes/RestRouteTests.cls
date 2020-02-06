@@ -1,20 +1,36 @@
 @isTest
 public class RestRouteTests {
-    private static final String RESOURCE_URL = '/v1/companies/*';
+    private static final String RESOURCE_URL = '/api/*';
     private static final String RESOURCE_PATH = '/services/apexrest' + RESOURCE_URL;
 
     @isTest
+    public static void testEntryRoute() {
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1');
+        RestResponse resp = RestContext.Response;
+
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
+        router.execute();
+
+        System.assertEquals(400, resp.statusCode);
+    }
+
+    @isTest
+    public static void testEntryRouteCollections() {
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api');
+        RestResponse resp = RestContext.Response;
+
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
+        router.execute();
+
+        System.assertEquals(400, resp.statusCode);
+    }
+
+    @isTest
     public static void testBaseRouteCollection() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/';
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/');
+        RestResponse resp = RestContext.Response;
 
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -28,16 +44,10 @@ public class RestRouteTests {
 
     @isTest
     public static void testBaseRouteCollection2() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies';
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies');
+        RestResponse resp = RestContext.Response;
 
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -51,18 +61,10 @@ public class RestRouteTests {
 
     @isTest
     public static void testBaseRouteSingle() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/c-1';
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/c-1');
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -76,19 +78,14 @@ public class RestRouteTests {
 
     @isTest
     public static void testSingleExpanded() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/c-1';
-        req.params.put('expand', '1');
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(
+            RESOURCE_PATH,
+            '/api/v1/companies/c-1',
+            new Map<String, String>{ 'expand' => '1' }
+        );
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -99,19 +96,14 @@ public class RestRouteTests {
 
     @isTest
     public static void testCollectionExpanded() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies';
-        req.params.put('expand', '1');
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(
+            RESOURCE_PATH,
+            '/api/v1/companies',
+            new Map<String, String>{ 'expand' => '1' }
+        );
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -122,18 +114,10 @@ public class RestRouteTests {
 
     @isTest
     public static void testNestedRouteCollection() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/c-2/locations';
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/c-2/locations');
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -147,20 +131,37 @@ public class RestRouteTests {
     }
 
     @isTest
+    public static void testAlternateRoute() {
+        RestRouteTestUtil.setupRestContext(
+            RESOURCE_PATH,
+            '/api/v1/employees',
+            new Map<String, String>{ 'companyId' => 'c-2' }
+        );
+        RestResponse resp = RestContext.Response;
+
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
+        router.execute();
+
+        System.assertEquals(200, resp.statusCode);
+        RestRouteTestRoutes.CompanyEmployee[] respData = (RestRouteTestRoutes.CompanyEmployee[]) JSON.deserialize(
+            resp.responseBody.toString(),
+            List<RestRouteTestRoutes.CompanyEmployee>.class
+        );
+
+        System.assertEquals(3, respData.size());
+        System.assertEquals('Iron Man', respData[0].name);
+    }
+
+    @isTest
     public static void testRouteCollectionFilter() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/c-2/employees';
-        req.params.put('role', 'CEO');
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(
+            RESOURCE_PATH,
+            '/api/v1/companies/c-2/employees',
+            new Map<String, String>{ 'role' => 'CEO' }
+        );
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -175,18 +176,10 @@ public class RestRouteTests {
 
     @isTest
     public static void testNestedRouteSingle() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/c-1/employees/e-2';
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/c-1/employees/e-2');
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(200, resp.statusCode);
@@ -200,25 +193,14 @@ public class RestRouteTests {
 
     @isTest
     public static void testNestedRouteSingleNotRelated() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/c-2/employees/e-2';
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/c-2/employees/e-2');
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(404, resp.statusCode);
-        RestRouteError.Response[] respData = (RestRouteError.Response[]) JSON.deserialize(
-            resp.responseBody.toString(),
-            List<RestRouteError.Response>.class
-        );
+        RestRouteError.Response[] respData = RestRouteTestUtil.parseResponseErrors(resp);
 
         System.assertEquals(1, respData.size());
         System.assertEquals('NOT_FOUND', respData[0].errorCode);
@@ -226,25 +208,14 @@ public class RestRouteTests {
 
     @isTest
     public static void testNoRouteFound() {
-        RestRequest req = new RestRequest();
-        req.resourcePath = RESOURCE_PATH;
-        req.requestURI = '/v1/companies/c-2/asdf';
-        req.httpMethod = 'GET';
-        RestContext.Request = req;
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/c-2/asdf');
+        RestResponse resp = RestContext.Response;
 
-        system.debug(RestContext.Request.requestURI);
-
-        RestResponse resp = new RestResponse();
-        RestContext.Response = resp;
-
-        RestRouteTestRoutes.CompanyRoute router = new RestRouteTestRoutes.CompanyRoute();
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
         router.execute();
 
         System.assertEquals(404, resp.statusCode);
-        RestRouteError.Response[] respData = (RestRouteError.Response[]) JSON.deserialize(
-            resp.responseBody.toString(),
-            List<RestRouteError.Response>.class
-        );
+        RestRouteError.Response[] respData = RestRouteTestUtil.parseResponseErrors(resp);
 
         System.assertEquals(1, respData.size());
         System.assertEquals('NOT_FOUND', respData[0].errorCode);

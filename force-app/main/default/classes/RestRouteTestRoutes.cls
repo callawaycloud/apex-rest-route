@@ -1,5 +1,21 @@
+@isTest
 public class RestRouteTestRoutes {
     //TOP LEVEL ROUTE
+
+    // could be used to support multiple versions
+    public class APIEntryRoute extends RestRoute {
+        protected override Map<String, RestRoute> getNextRouteMap() {
+            //two ways to support multiple versions
+            //  1. Return different routers based on this.resourceId
+            //  2. Pass this.resourceId into children routes and let each route deal
+            //      with how to respond to different versions
+            return new Map<String, RestRoute>{
+                'companies' => new CompanyRoute(),
+                'employees' => new CompanyEmployeeRoute(null)
+            };
+        }
+    }
+
     // companies/:companyId?
     public class CompanyRoute extends RestRoute {
         public override Object doGet() {
@@ -53,7 +69,8 @@ public class RestRouteTestRoutes {
     }
 
     // Company Locations Route
-    //   companies/:companyId/employees/:employeeId?
+    //   api/v1/employees?companyId=:companyId
+    //   api/v1/companies/:companyId/employees/:employeeId?
     public class CompanyEmployeeRoute extends RestRoute {
         private String companyId;
 
@@ -62,8 +79,16 @@ public class RestRouteTestRoutes {
         }
 
         protected override Object doGet() {
-            //filter down by company
-            CompanyEntity[] companyEmployees = getEntitiesByCompany(companyId, EMPLOYEES);
+            //support for /api/v1/employees?companyId=:companyId
+            if (this.companyId == null && this.request.params.containsKey('companyId')) {
+                this.companyId = this.request.params.get('companyId');
+            }
+
+            //optionally filter down by company
+            CompanyEntity[] companyEmployees = EMPLOYEES;
+            if (this.companyId != null) {
+                companyEmployees = getEntitiesByCompany(this.companyId, EMPLOYEES);
+            }
 
             if (!String.isEmpty(this.resourceId)) {
                 return getEntityById(this.resourceId, companyEmployees);
@@ -130,7 +155,10 @@ public class RestRouteTestRoutes {
         return COMPANIES;
     }
 
-    static final Company[] COMPANIES = new List<Company>{ new Company('c-1', 'Acme'), new Company('c-2', 'Stark Industries') };
+    static final Company[] COMPANIES = new List<Company>{
+        new Company('c-1', 'Acme'),
+        new Company('c-2', 'Stark Industries')
+    };
 
     static final CompanyLocation[] LOCATIONS = new List<CompanyLocation>{
         new CompanyLocation('c-1', 'l-1', 'Desert'),
