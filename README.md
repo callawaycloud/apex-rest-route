@@ -14,7 +14,7 @@ A simple library that allows the creation of RESTful API's.
 
 ## 📦 Install
 
-coming soon
+Via Unlocked Package: [Install Link](https://mydomain.salesforce.com/packaging/installPackage.apexp?p0=04t1C000000goM0QAI) (update `https://mydomain.salesforce.com` for your target org!).
 
 ## 🔨 Usage
 
@@ -181,6 +181,30 @@ protected override Object doGet() {
     this.response.addHeader('Content-Type', 'text/plain');
     return null;
 }
+```
+
+### Routes without resources...
+
+While it's not exactly "Restful" you may have routes which do not always following the `/:RESOURCE_URI/:RESOURCE_ID` format.
+
+For example, if you wanted to implement the following url:
+
+`/api/v1/other/foo`
+
+Note that `other` is not followed by a resource ID. If you want to implement `foo` as a RestRoute, then you need to tell `other` not to treat the next URL part as a `:resourceId`.
+
+To do so, simply override the `hasResource` method:
+
+```java
+  public class OtherRoute extends RestRoute {
+      protected override boolean hasResource() {
+          return false; //do parse the next url part as resourceId
+      }
+
+      protected override Map<String, RestRoute> getNextRouteMap() {
+          return new Map<String, RestRoute>{ 'foo' => new FooRoute() };
+      }
+  }
 ```
 
 ### Error Handling

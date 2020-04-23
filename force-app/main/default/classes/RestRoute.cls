@@ -73,6 +73,13 @@ public abstract class RestRoute {
     }
 
     /**
+     * Can be override to prevent popping the next URL part to the ResourceId
+     */
+    protected virtual boolean hasResource() {
+        return true;
+    }
+
+    /**
      * Standard Route Mapping
      *  Key of String will be matched against the next URI path
      */
@@ -117,7 +124,10 @@ public abstract class RestRoute {
     //either responds to the request, or forwards it to the next RestRoute
     protected Object route() {
         System.debug(this.relativePaths);
-        this.loadResourceId();
+        if (this.hasResource()) {
+            this.loadResourceId();
+        }
+
         if (!this.hasNextPath()) {
             return this.respond();
         }
@@ -162,6 +172,10 @@ public abstract class RestRoute {
      */
     protected String popNextPath() {
         return relativePaths.remove(0);
+    }
+
+    protected String peakNextPath() {
+        return relativePaths[0];
     }
 
     /**

@@ -11,8 +11,26 @@ public class RestRouteTestRoutes {
             //      with how to respond to different versions
             return new Map<String, RestRoute>{
                 'companies' => new CompanyRoute(),
-                'employees' => new CompanyEmployeeRoute(null)
+                'employees' => new CompanyEmployeeRoute(null),
+                'other' => new OtherRoute()
             };
+        }
+    }
+
+    // other/foo/
+    public class OtherRoute extends RestRoute {
+        protected override boolean hasResource() {
+            return false;
+        }
+        protected override Map<String, RestRoute> getNextRouteMap() {
+            return new Map<String, RestRoute>{ 'foo' => new FooRoute() };
+        }
+    }
+
+    public class FooRoute extends RestRoute {
+        public override Object doGet() {
+            response.responseBody = Blob.valueOf('foo');
+            return null;
         }
     }
 
@@ -155,10 +173,7 @@ public class RestRouteTestRoutes {
         return COMPANIES;
     }
 
-    static final Company[] COMPANIES = new List<Company>{
-        new Company('c-1', 'Acme'),
-        new Company('c-2', 'Stark Industries')
-    };
+    static final Company[] COMPANIES = new List<Company>{ new Company('c-1', 'Acme'), new Company('c-2', 'Stark Industries') };
 
     static final CompanyLocation[] LOCATIONS = new List<CompanyLocation>{
         new CompanyLocation('c-1', 'l-1', 'Desert'),

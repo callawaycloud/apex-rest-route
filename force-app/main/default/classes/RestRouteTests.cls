@@ -43,6 +43,19 @@ public class RestRouteTests {
     }
 
     @isTest
+    public static void testNoResourceRoute() {
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/other/foo');
+        RestResponse resp = RestContext.Response;
+
+        RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
+        router.execute();
+
+        System.assertEquals(200, resp.statusCode);
+
+        System.assertEquals('foo', resp.responseBody.toString());
+    }
+
+    @isTest
     public static void testBaseRouteCollection2() {
         RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies');
         RestResponse resp = RestContext.Response;
@@ -78,11 +91,7 @@ public class RestRouteTests {
 
     @isTest
     public static void testSingleExpanded() {
-        RestRouteTestUtil.setupRestContext(
-            RESOURCE_PATH,
-            '/api/v1/companies/c-1',
-            new Map<String, String>{ 'expand' => '1' }
-        );
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/c-1', new Map<String, String>{ 'expand' => '1' });
         RestResponse resp = RestContext.Response;
 
         RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
@@ -96,11 +105,7 @@ public class RestRouteTests {
 
     @isTest
     public static void testCollectionExpanded() {
-        RestRouteTestUtil.setupRestContext(
-            RESOURCE_PATH,
-            '/api/v1/companies',
-            new Map<String, String>{ 'expand' => '1' }
-        );
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies', new Map<String, String>{ 'expand' => '1' });
         RestResponse resp = RestContext.Response;
 
         RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
@@ -132,11 +137,7 @@ public class RestRouteTests {
 
     @isTest
     public static void testAlternateRoute() {
-        RestRouteTestUtil.setupRestContext(
-            RESOURCE_PATH,
-            '/api/v1/employees',
-            new Map<String, String>{ 'companyId' => 'c-2' }
-        );
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/employees', new Map<String, String>{ 'companyId' => 'c-2' });
         RestResponse resp = RestContext.Response;
 
         RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
@@ -154,11 +155,7 @@ public class RestRouteTests {
 
     @isTest
     public static void testRouteCollectionFilter() {
-        RestRouteTestUtil.setupRestContext(
-            RESOURCE_PATH,
-            '/api/v1/companies/c-2/employees',
-            new Map<String, String>{ 'role' => 'CEO' }
-        );
+        RestRouteTestUtil.setupRestContext(RESOURCE_PATH, '/api/v1/companies/c-2/employees', new Map<String, String>{ 'role' => 'CEO' });
         RestResponse resp = RestContext.Response;
 
         RestRouteTestRoutes.APIEntryRoute router = new RestRouteTestRoutes.APIEntryRoute();
