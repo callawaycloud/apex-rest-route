@@ -1,11 +1,18 @@
 {
-  "packageDirectories": [
-    {
-      "path": "force-app",
-      "default": true
+    "packageDirectories": [
+        {
+            "path": "force-app",
+            "default": true,
+            "package": "apex-rest-route",
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT"
+        }
+    ],
+    "namespace": "",
+    "sfdcLoginUrl": "https://login.salesforce.com",
+    "sourceApiVersion": "47.0",
+    "packageAliases": {
+        "apex-rest-route": "0Ho1C000000002WSAQ",
+        "apex-rest-route@0.1.0-1": "04t1C000000goM0QAI"
     }
-  ],
-  "namespace": "",
-  "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "47.0"
 }

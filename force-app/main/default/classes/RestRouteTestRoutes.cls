@@ -12,13 +12,13 @@ public class RestRouteTestRoutes {
             return new Map<String, RestRoute>{
                 'companies' => new CompanyRoute(),
                 'employees' => new CompanyEmployeeRoute(null),
-                'other' => new MultipathRoute()
+                'other' => new OtherRoute()
             };
         }
     }
 
     // other/foo/
-    public class MultipathRoute extends RestRoute {
+    public class OtherRoute extends RestRoute {
         protected override boolean hasResource() {
             return false;
         }
